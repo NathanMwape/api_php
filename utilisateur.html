@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi de Localisation</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 500px;
+            width: 90%;
+            margin: 10px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Suivi de Localisation</h1>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let map = L.map('map').setView([0, 0], 2); // Initialiser la carte
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        let client_id = 1; // Remplacez ceci par l'ID du client que vous suivez
+        let lastPosition = null;
+        let lastTimestamp = Date.now();
+
+        // Créer une polyline pour tracer les lignes entre les positions
+        let path = L.polyline([], { color: 'blue' }).addTo(map);
+
+        // Fonction pour mettre à jour la position
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const { longitude, latitude } = position.coords;
+                    const currentTimestamp = Date.now();
+
+                    if (lastPosition) {
+                        const distance = calculateDistance(lastPosition, { longitude, latitude });
+
+                        if (distance >= 2) { // Déplacement de 2 mètres
+                            if (currentTimestamp - lastTimestamp >= 10000) { // 10 secondes
+                                saveLocation(longitude, latitude);
+                                lastTimestamp = currentTimestamp;
+                            }
+                        }
+
+                        // Ajouter la nouvelle position au chemin (polyline)
+                        path.addLatLng([latitude, longitude]);
+                    } else {
+                        // Première position : ajouter un point initial
+                        path.addLatLng([latitude, longitude]);
+                    }
+
+                    lastPosition = { longitude, latitude };
+
+                    // Mettre à jour la carte
+                    L.marker([latitude, longitude]).addTo(map).bindPopup('Vous êtes ici').openPopup();
+                    map.setView([latitude, longitude]);
+                });
+            } else {
+                alert("La géolocalisation n'est pas supportée par votre navigateur.");
+            }
+        }
+
+        function calculateDistance(pos1, pos2) {
+            const R = 6371e3; // Rayon de la Terre en mètres
+            const lat1 = pos1.latitude * Math.PI / 180;
+            const lat2 = pos2.latitude * Math.PI / 180;
+            const deltaLat = (pos2.latitude - pos1.latitude) * Math.PI / 180;
+            const deltaLon = (pos2.longitude - pos1.longitude) * Math.PI / 180;
+
+            const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+                      Math.cos(lat1) * Math.cos(lat2) *
+                      Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c; // Distance en mètres
+        }
+
+        function saveLocation(longitude, latitude) {
+            fetch('http://localhost/api_test/clients.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    longitude: longitude,
+                    latitude: latitude
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+            })
+            .catch(error => console.error('Erreur:', error));
+        }
+
+        // Vérifiez la position toutes les 5 secondes
+        setInterval(updateLocation, 5000);
+    </script>
+</body>
+</html>
