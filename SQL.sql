@@ -15,8 +15,15 @@ CREATE TABLE positions (
 
 `Endpoints :`
 
-`GET http://localhost/api_test/index.php/?utilisateur_id=2 // pour afficher les positions d\'un utilisateur specifique
+`GET http://localhost/api_test/index.php/?utilisateur_id=2 // pour afficher les positions d\un utilisateur specifique
 GET http://localhost/api_test/index.php // pour afficher toutes les positions des utilisateurs
 POST http://localhost/api_test/index.php // pour enregistrer une position
 POST http://localhost/api_test/index.php/ // Données envoyées : { "nom": "exemple_utilisateur", "mot_de_passe": "exemple_mot_de_passe" } LOGIN // pour se connecter
+
+
+POST http://localhost/api_test/index.php/login // la route pour se connecter
+POST http://localhost/api_test/index.php/positions // la route pour enregistrer les positions
+GET http://localhost/api_test/index.php/position/?utilisateur_id=${utilisateurId} // pour afficher les positions d\un utilisateur
+POST http://localhost/api_test/index.php/positions  // la route pour enregistrer les positions
+
 
