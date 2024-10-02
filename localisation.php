@@ -1,11 +1,7 @@
 <?php
 // Inclusion du fichier de connexion
-try {
-  $pdo = new PDO('mysql:host=localhost;dbname=live_locator', 'root', '');
-  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-  echo 'Erreur de connexion : ' . $e->getMessage();
-}
+require_once 'db.php';
+
 
 // Récupération des utilisateurs et d'une seule position (la plus récente ou la première) pour chaque utilisateur
 $sql = "SELECT u.id, u.nom, p.latitude, p.longitude 

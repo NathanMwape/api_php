@@ -12,8 +12,5 @@ try {
     die(json_encode(["error" => "Erreur de connexion à la base de données: " . $e->getMessage()]));
 }
 
-// Définir les en-têtes pour autoriser les requêtes CORS
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST');
-header('Content-Type: application/json');
+
 

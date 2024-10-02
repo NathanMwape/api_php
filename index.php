@@ -5,7 +5,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // Connexion à la base de données
-include 'db.php';
+require_once 'db.php';
 
 // Définir les en-têtes pour autoriser les requêtes CORS
 header('Access-Control-Allow-Origin: *');
@@ -22,26 +22,26 @@ $requestUri = $_SERVER['REQUEST_URI'];
 file_put_contents('log.txt', "Requête: $requestMethod $requestUri\n", FILE_APPEND);
 
 // Route pour récupérer les positions d'un utilisateur spécifique (GET)
-if ($requestMethod === 'GET' && strpos($requestUri, '/position') !== false) {
+if ($requestMethod === 'GET' && strpos($requestUri, '/position') !== false && strpos($requestUri, '/positionALL') === false) {
     if (isset($_GET['utilisateur_id'])) {
         $utilisateurId = $_GET['utilisateur_id'];
 
-        // Préparer la requête SQL pour récupérer les positions
         $stmt = $pdo->prepare("SELECT latitude, longitude FROM positions WHERE utilisateur_id = ? ORDER BY timestamp DESC");
         $stmt->execute([$utilisateurId]);
         $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Vérifier s'il y a des positions pour cet utilisateur
         if ($positions) {
             echo json_encode($positions); // Retourner les positions en JSON
         } else {
-            echo json_encode([]);
+            echo json_encode(["message" => "Aucune position pour cet utilisateur"]);
         }
     } else {
         echo json_encode(["message" => "ID d'utilisateur manquant"]);
     }
+    exit;
 }
 
+// Route pour enregistrer la position de l'utilisateur (POST)
 if ($requestMethod === 'POST' && strpos($requestUri, '/positions') !== false) {
     $data = json_decode(file_get_contents('php://input'), true);
     if (isset($data['utilisateurId']) && isset($data['latitude']) && isset($data['longitude'])) {
@@ -58,9 +58,10 @@ if ($requestMethod === 'POST' && strpos($requestUri, '/positions') !== false) {
     } else {
         echo json_encode(["message" => "Données incomplètes pour la position"]);
     }
+    exit;
 }
 
-
+// Route pour créer un utilisateur (POST)
 if ($requestMethod === 'POST' && strpos($requestUri, '/registre') !== false) {
     $data = json_decode(file_get_contents('php://input'), true);
     if (isset($data['nom']) && isset($data['mot_de_passe'])) {
@@ -76,33 +77,44 @@ if ($requestMethod === 'POST' && strpos($requestUri, '/registre') !== false) {
     } else {
         echo json_encode(["message" => "Données incomplètes pour la création de l'utilisateur"]);
     }
+    exit;
 }
-
 
 if ($requestMethod === 'POST' && strpos($requestUri, '/login') !== false) {
     $data = json_decode(file_get_contents('php://input'), true);
     if (isset($data['nom']) && isset($data['mot_de_passe'])) {
-        $nom = $data['nom'];
-        $mot_de_passe = $data['mot_de_passe'];
-
-        // Vérification des identifiants
-        $stmt = $pdo->prepare("SELECT * FROM utilisateurs WHERE nom = ?");
-        $stmt->execute([$nom]);
-        $utilisateur = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($utilisateur && $utilisateur['mot_de_passe'] === $mot_de_passe) {
-            echo json_encode([
-                "message" => "Connexion réussie et position enregistrée",
-                "utilisateurId" => $utilisateur['id'],
-                "nom" => $utilisateur['nom']
-            ]);
-        } else {
-            echo json_encode(["message" => "Nom d'utilisateur ou mot de passe incorrect"]);
-        }
+      $nom = $data['nom'];
+      $mot_de_passe = $data['mot_de_passe'];
+  
+      // Vérification des identifiants
+      $stmt = $pdo->prepare("SELECT * FROM utilisateurs WHERE nom = ?");
+      $stmt->execute([$nom]);
+      $utilisateur = $stmt->fetch(PDO::FETCH_ASSOC);
+  
+      if ($utilisateur && $utilisateur['mot_de_passe'] === $mot_de_passe) {
+        echo json_encode([
+          "message" => "Connexion réussie et position enregistrée",
+          "utilisateurId" => $utilisateur['id'],
+          "nom" => $utilisateur['nom']
+        ]);
+      } else {
+        echo json_encode(["message" => "Nom d'utilisateur ou mot de passe incorrect"]);
+      }
     } else {
-        echo json_encode(["message" => "Données incomplètes pour la connexion"]);
+      echo json_encode(["message" => "Données incomplètes pour la connexion"]);
     }
+    exit;
+  }
+
+// Route pour afficher toutes les positions des utilisateurs (GET)
+if ($requestMethod === 'GET' && strpos($requestUri, '/positionALL') !== false) {
+    $stmt = $pdo->prepare("SELECT id, longitude, latitude FROM positions");
+    $stmt->execute();
+    $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode($positions);
+    exit;
 }
+
 
 
 // Route pour gérer la création d'utilisateur, la connexion et l'enregistrement de position (POST)
