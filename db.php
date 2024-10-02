@@ -11,6 +11,3 @@ try {
 } catch (PDOException $e) {
     die(json_encode(["error" => "Erreur de connexion à la base de données: " . $e->getMessage()]));
 }
-
-
-
