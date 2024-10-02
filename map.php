@@ -31,14 +31,58 @@ if (isset($_GET['id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carte de <?= htmlspecialchars($userName) ?></title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            width: 100%;
+            margin-top: 10px;
+        }
+        h2 {
+            text-align: center;
+            font-size: 2rem;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        #map {
+            height: 550px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+        .btn-custom {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .fa-map-marker-alt, .fa-arrow-left {
+            margin-right: 5px;
+        }
+        .back-button {
+            background-color: #6c757d;
+            color: white;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-2">
-        <h2>Localisation de <?= htmlspecialchars($userName) ?></h2>
+
+    <div class="container shadow p-4 bg-white rounded">
+        <h2><i class="fa-solid fa-map-marker-alt"></i> Localisation de <?= htmlspecialchars($userName) ?></h2>
+
         <!-- Conteneur pour la carte -->
-        <div id="map" style="height: 600px; width: 100%;"></div>
-        <a href="localisation.php" class="btn btn-secondary mt-3">Retour à la liste</a>
+        <div id="map"></div>
+
+        <!-- Bouton Retour -->
+        <a href="localisation.php" class="btn btn-custom btn-secondary back-button mt-3">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>
     </div>
 
     <!-- Inclusion de Leaflet JS -->
@@ -84,7 +128,6 @@ if (isset($_GET['id'])) {
             alert("Aucune position disponible pour cet utilisateur.");
         }
     </script>
-</body>
-</html>
 
+</body>
 </html>
